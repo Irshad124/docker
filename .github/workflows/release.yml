@@ -1,0 +1,30 @@
+name: Release
+ 
+on:
+  push:
+    tags:
+      - "*"
+ 
+jobs:
+  build_and_publish_image_in_dockerhub:
+    runs-on: ubuntu-latest
+    name   : Build image and push
+ 
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+ 
+    - name: Login to DockerHub
+      run: docker login -u ${{ secrets.DOCKER_USERNAME}} -p ${{ secrets.DOCKER_PASSWORD}}
+ 
+    - name: Build and tag Docker image
+      run: |
+        docker build --file Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/docker031:${{github.ref_name}} .
+    
+    - name: Push Docker image to DockerHub
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/docker031:${{github.ref_name}}
+ 
+    - name: Run Flask application in Docker container
+      run: |
+        docker run -d -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/docker031:${{github.ref_name}}
